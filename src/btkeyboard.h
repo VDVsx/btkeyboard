@@ -27,7 +27,6 @@
 #ifndef BTKEYBOARD_H
 #define BTKEYBOARD_H
 
-
 class BtKeyboard
 {
 
@@ -37,19 +36,19 @@ public:
     GKeyFile *load_config(const char *file);
     void parseConf(GKeyFile *config);
     bool isDisabled(char **list);
+    void saveConfig(GKeyFile *config);
     void disable(GKeyFile *config);
     void enable(GKeyFile *config);
+    int showInformationNote(QString info_type);
 
 private:
     QList<char*> conf;
     QString mode;
     gsize length;
     gchar** confValues;
+    gchar* input;
     int counter;
-    bool isDisabl;
-
-
+    bool disabled;
 };
-
 
 #endif // BTKEYBOARD_H

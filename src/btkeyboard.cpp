@@ -20,8 +20,8 @@
 **
 ************************************************************************************/
 
-#include <QtDebug>
-#include <QStringList>
+#include <QtDBus>
+#include <QVariant>
 
 #include "btkeyboard.h"
 
@@ -31,7 +31,7 @@ BtKeyboard::BtKeyboard(QString mod)
     QTextStream out(stdout);
 
     //const char *conf_file = "main.conf";
-    char input[] = "input";
+    input = "input";
 
 
 /*
@@ -119,8 +119,6 @@ GKeyFile* BtKeyboard::load_config(const char *file)
      GKeyFile *keyfile;
      GKeyFileFlags flags;
      GError *error = NULL;
-     gchar* saved_data;
-     bool b_ret;
 
      QTextStream out(stdout); //remove
 
@@ -151,8 +149,6 @@ bool BtKeyboard::isDisabled(char **list)
     //plugin is on the list.
 
     for (int i = 0; list[i] != NULL; i++) {
-        bool equal;
-
         if (g_str_equal("input", list[i]))
             return true;
     }
@@ -160,32 +156,80 @@ bool BtKeyboard::isDisabled(char **list)
     return false;
 }
 
+void BtKeyboard::saveConfig(GKeyFile *config)
+{
+    QTextStream out(stdout); //remove
+
+    gchar* saved_data;
+    bool b_ret;
+
+    saved_data = g_key_file_to_data (config, &length, NULL);
+
+    if (!saved_data){
+        showInformationNote("error");
+    }
+
+    //Write data to file
+    b_ret = g_file_set_contents ("main.conf", saved_data, length, NULL);
+    g_free (saved_data);
+
+    if (!b_ret){
+       showInformationNote("error");
+    }
+
+    //free file
+    g_key_file_free(config);
+
+    showInformationNote("file saved");
+}
+
 
 void BtKeyboard::disable(GKeyFile *config)
 {
-    QTextStream out(stdout); //remove
 
     parseConf(config);
 
     if (confValues == NULL){
-        out << "error: cant find option" << endl;
+        showInformationNote("error: cant find option");
     }
 
     else{
-        isDisabl = isDisabled(confValues);
-        if (isDisabl){
-
-            out << "KB Bluetooth Support disabled" << endl;
+        disabled = isDisabled(confValues);
+        if (disabled){
+           showInformationNote("KB Bluetooth Support disabled");
         }
 
         else{
-
-
+            confValues[length] = input;
+            g_key_file_set_string_list(config, "General","DisablePlugins", confValues, length+1);
+            saveConfig(config);
         }
 
     }
 
 
+}
+
+int BtKeyboard::showInformationNote(QString info_type){
+    QString credits = "\nCredits:\n\nProgramming: Valerio Valerio <vdv100@gmail.com\n";
+    credits += "Application icon: Andrew Zhilin <drew.zhilin@gmail.com>\n";
+
+    QDBusMessage msg = QDBusMessage::createMethodCall("org.freedesktop.Notifications",
+                                                      "/org/freedesktop/Notifications",
+                                                      "org.freedesktop.Notifications",
+                                                      "SystemNoteDialog");
+    QString text = info_type + credits;
+
+    QList<QVariant> args;
+    args.append(text);
+    args.append(static_cast<quint32>(0));
+    args.append("ok");
+
+    msg.setArguments(args);
+
+    QDBusConnection::systemBus().call(msg);
+
+    return 1;
 }
 
 void BtKeyboard::enable(GKeyFile *config)
