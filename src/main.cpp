@@ -23,19 +23,24 @@
 #include <QTextStream>
 #include "btkeyboard.h"
 
-
 int main(int argc, char *argv[])
  {
     QString arg = argv[1];
     QTextStream out(stdout);
+    GKeyFile *config;
 
     if (arg == "--disable" || arg == "--enable"){
+        BtKeyboard btkb(arg);
 
-        BtKeyboard key(arg);
+        config = btkb.load_config("main.conf");
+
+        if (arg == "-disable")
+            btkb.disable(config);
+        else
+            btkb.disable(config);
     }
 
     else{
-
         out << "Usage:" << endl;
         out << "  btkeyboard [OPTION]" << endl << endl;
         out << "Help Option:" << endl;
@@ -43,6 +48,5 @@ int main(int argc, char *argv[])
         out << "Application Options:" << endl;
         out << "  --enable      Enables the support for Bluetooth keyboards" << endl;
         out << "  --disable     Disables the support for Bluetooth keyboards"  << endl << endl;
-
     }
  }

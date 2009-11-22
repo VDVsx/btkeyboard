@@ -20,6 +20,8 @@
 **
 ************************************************************************************/
 
+#include <glib.h>
+
 #include <QString>
 
 #ifndef BTKEYBOARD_H
@@ -31,11 +33,20 @@ class BtKeyboard
 
 public:
     BtKeyboard(QString mode);
+    ~BtKeyboard();
+    GKeyFile *load_config(const char *file);
+    void parseConf(GKeyFile *config);
+    bool isDisabled(char **list);
+    void disable(GKeyFile *config);
+    void enable(GKeyFile *config);
 
 private:
-
     QList<char*> conf;
+    QString mode;
+    gsize length;
+    gchar** confValues;
     int counter;
+    bool isDisabl;
 
 
 };

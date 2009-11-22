@@ -20,42 +20,21 @@
 **
 ************************************************************************************/
 
-#include <glib.h>
-
 #include <QtDebug>
 #include <QStringList>
 
 #include "btkeyboard.h"
 
-
-
-BtKeyboard::BtKeyboard(QString mode){
-
+BtKeyboard::BtKeyboard(QString mod)
+{
+    mode = mod;
     QTextStream out(stdout);
 
-    const char *conf_file = "main.conf";
+    //const char *conf_file = "main.conf";
     char input[] = "input";
 
-    GKeyFile *keyfile;
-    GKeyFileFlags flags;
-    GError *error = NULL;
-    gsize length;
-    gchar** confValues;
-    gchar* saved_data;
-    bool b_ret;
-    QList<char*> conf;
 
-
-    keyfile = g_key_file_new();
-    g_key_file_set_list_separator (keyfile,',');
-    flags = G_KEY_FILE_KEEP_COMMENTS;
-
-    if (!g_key_file_load_from_file(keyfile, conf_file, flags, &error))
-      {
-        out << "error: cant find conf file" << endl;
-      }
-
-
+/*
     confValues = g_key_file_get_string_list(keyfile, "General","DisablePlugins", &length, NULL);
 
     if (length != 0){
@@ -130,23 +109,91 @@ BtKeyboard::BtKeyboard(QString mode){
     }
 
     //free file
-    g_key_file_free(keyfile);
+    g_key_file_free(keyfile);*/
 
-    /*
-    QSettings settings("main.conf",QSettings::NativeFormat);
-
-    QStringList value = settings.value("DisablePlugins").toStringList();
-
-    value.append("cenas");
-
-    settings.setValue("DisablePlugins",QVariant(value));
-    settings.sync();
-
-//QStringList keys = settings.allKeys();
-
-    //qDebug() << keys;
-    value = settings.value("DisablePlugins").toStringList();
-
-    qDebug() << value;*/
 
 }
+
+GKeyFile* BtKeyboard::load_config(const char *file)
+{
+     GKeyFile *keyfile;
+     GKeyFileFlags flags;
+     GError *error = NULL;
+     gchar* saved_data;
+     bool b_ret;
+
+     QTextStream out(stdout); //remove
+
+     keyfile = g_key_file_new();
+     g_key_file_set_list_separator (keyfile,',');
+     flags = G_KEY_FILE_KEEP_COMMENTS;
+
+     if (!g_key_file_load_from_file(keyfile, file, flags, &error)){
+         out << "error: cant find conf file" << endl;
+         return NULL;
+     }
+
+     return keyfile;
+}
+
+void BtKeyboard::parseConf(GKeyFile *config)
+{
+    confValues = g_key_file_get_string_list(config, "General","DisablePlugins", &length, NULL);
+
+    //return confValues;
+
+     // por isto no outro lado -->   out << "error: cant find option" << endl;
+}
+
+bool BtKeyboard::isDisabled(char **list)
+{
+    //returns true if the support is disable, ie the
+    //plugin is on the list.
+
+    for (int i = 0; list[i] != NULL; i++) {
+        bool equal;
+
+        if (g_str_equal("input", list[i]))
+            return true;
+    }
+
+    return false;
+}
+
+
+void BtKeyboard::disable(GKeyFile *config)
+{
+    QTextStream out(stdout); //remove
+
+    parseConf(config);
+
+    if (confValues == NULL){
+        out << "error: cant find option" << endl;
+    }
+
+    else{
+        isDisabl = isDisabled(confValues);
+        if (isDisabl){
+
+            out << "KB Bluetooth Support disabled" << endl;
+        }
+
+        else{
+
+
+        }
+
+    }
+
+
+}
+
+void BtKeyboard::enable(GKeyFile *config)
+{
+    parseConf(config);
+}
+
+BtKeyboard::~BtKeyboard()
+{
+}
+
