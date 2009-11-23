@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
     if (arg == "--disable" || arg == "--enable"){
         BtKeyboard btkb(arg);
 
-        config = btkb.load_config("main.conf");
+        config = btkb.load_config("/etc/bluetooth/main.conf");
 
         if (arg == "--disable")
             btkb.disable(config);

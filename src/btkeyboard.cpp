@@ -84,7 +84,7 @@ void BtKeyboard::saveConfig(GKeyFile *config)
         showInformationNote("Error: Cannot save settings");
 
     //Write data to file
-    b_ret = g_file_set_contents ("main.conf", saved_data, length, NULL);
+    b_ret = g_file_set_contents ("/etc/bluetooth/main.conf", saved_data, length, NULL);
     g_free (saved_data);
 
     if (!b_ret)
@@ -101,13 +101,32 @@ void BtKeyboard::disable(GKeyFile *config)
     disabled = isDisabled(confValues);
 
     if (disabled)
-        showInformationNote("Support for Bluetooth keyboards disabled");
+        showInformationNote("Support for Bluetooth keyboard disabled");
 
     else{
         confValues[length] = input;
         g_key_file_set_string_list(config, "General","DisablePlugins", confValues, length+1);
         saveConfig(config);
-        showInformationNote("Support for Bluetooth keyboards disabled");
+
+        int tmp = system("stop bluetoothd");
+
+        //should never happen
+        if (tmp < 0){
+            error = "Error: Cannot restart the Bluetooth system";
+            error += "\nPlease restart your device to enable the support for Bluetooth keyboard";
+            showInformationNote(error);
+        }
+
+        tmp = system("start bluetoothd");
+
+        //should never happen
+        if (tmp < 0){
+            error = "Error: Cannot start the Bluetooth system";
+            error += "\nPlease restart your device";
+            showInformationNote(error);
+        }
+
+        showInformationNote("Support for Bluetooth keyboard disabled");
     }
 
 }
@@ -130,6 +149,25 @@ void BtKeyboard::enable(GKeyFile *config)
 
         g_key_file_set_string_list(config, "General","DisablePlugins", confValuesAux, counter);
         saveConfig(config);
+
+        int tmp = system("stop bluetoothd");
+
+        //should never happen
+        if (tmp < 0){
+            error = "Error: Cannot restart the Bluetooth system";
+            error += "\nPlease restart your device to enable the support for Bluetooth keyboard";
+            showInformationNote(error);
+        }
+
+        tmp = system("start bluetoothd");
+
+        //should never happen
+        if (tmp < 0){
+            error = "Error: Cannot start the Bluetooth system";
+            error += "\nPlease restart your device";
+            showInformationNote(error);
+        }
+
         showInformationNote("Support for Bluetooth keyboard enabled");
     }
 
