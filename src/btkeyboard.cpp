@@ -22,7 +22,6 @@
 
 #include <QtDBus>
 #include <QVariant>
-#include <QtDebug>
 
 #include "btkeyboard.h"
 

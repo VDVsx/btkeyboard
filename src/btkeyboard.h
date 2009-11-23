@@ -29,7 +29,6 @@
 
 class BtKeyboard
 {
-
 public:
     BtKeyboard(QString mode);
     ~BtKeyboard();
