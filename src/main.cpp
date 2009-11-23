@@ -34,10 +34,10 @@ int main(int argc, char *argv[])
 
         config = btkb.load_config("main.conf");
 
-        if (arg == "-disable")
+        if (arg == "--disable")
             btkb.disable(config);
         else
-            btkb.disable(config);
+            btkb.enable(config);
     }
 
     else{

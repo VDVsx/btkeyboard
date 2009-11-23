@@ -39,7 +39,7 @@ public:
     void saveConfig(GKeyFile *config);
     void disable(GKeyFile *config);
     void enable(GKeyFile *config);
-    int showInformationNote(QString info_type);
+    void showInformationNote(QString info_type);
 
 private:
     QList<char*> conf;

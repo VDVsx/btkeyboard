@@ -29,6 +29,7 @@
 BtKeyboard::BtKeyboard(QString mod)
 {
     mode = mod;
+    input = "input";
 }
 
 GKeyFile* BtKeyboard::load_config(const char *file)
@@ -42,7 +43,7 @@ GKeyFile* BtKeyboard::load_config(const char *file)
      flags = G_KEY_FILE_KEEP_COMMENTS;
 
      if (!g_key_file_load_from_file(keyfile, file, flags, &error)){
-         showInformationNote("Error: Cannot find the configurations file");
+         showInformationNote("Error: Cannot find configuration file");
          return NULL;
      }
 
@@ -52,11 +53,17 @@ GKeyFile* BtKeyboard::load_config(const char *file)
 void BtKeyboard::parseConf(GKeyFile *config)
 {
     confValues = g_key_file_get_string_list(config, "General","DisablePlugins", &length, NULL);
+
+    if (confValues == NULL){
+        error =  "Error: Can't parse configuration file";
+        error += "\nSupport for Bluetooth keyboard disabled";
+        showInformationNote(error);
+    }
 }
 
 bool BtKeyboard::isDisabled(char **list)
 {
-    //returns true if the support is disable, ie the
+    //returns true if the support is disabled, ie the
     //plugin is on the list.
     for (int i = 0; list[i] != NULL; i++) {
         if (g_str_equal("input", list[i]))
@@ -68,22 +75,20 @@ bool BtKeyboard::isDisabled(char **list)
 
 void BtKeyboard::saveConfig(GKeyFile *config)
 {
-    QTextStream out(stdout); //remove
-
     gchar* saved_data;
     bool b_ret;
 
     saved_data = g_key_file_to_data (config, &length, NULL);
 
     if (!saved_data)
-        showInformationNote("Error: Cannot save the configurations");
+        showInformationNote("Error: Cannot save settings");
 
     //Write data to file
     b_ret = g_file_set_contents ("main.conf", saved_data, length, NULL);
     g_free (saved_data);
 
     if (!b_ret)
-       showInformationNote("Error: Cannot save the configurations");
+       showInformationNote("Error: Cannot save settings");
 
     //free file
     g_key_file_free(config);
@@ -93,30 +98,46 @@ void BtKeyboard::saveConfig(GKeyFile *config)
 void BtKeyboard::disable(GKeyFile *config)
 {
     parseConf(config);
+    disabled = isDisabled(confValues);
 
-    if (confValues == NULL){
-        error =  "Error: The configurations file is in bad state";
-        error += "\nSupport for Bluetooth keyboards disabled";
-        showInformationNote(error);
-    }
+    if (disabled)
+        showInformationNote("Support for Bluetooth keyboards disabled");
 
     else{
-        disabled = isDisabled(confValues);
-        if (disabled)
-            showInformationNote("Support for Bluetooth keyboards disabled");
-
-        else{
-            confValues[length] = input;
-            g_key_file_set_string_list(config, "General","DisablePlugins", confValues, length+1);
-            saveConfig(config);
-            showInformationNote("Support for Bluetooth keyboards disabled");
-        }
-
+        confValues[length] = input;
+        g_key_file_set_string_list(config, "General","DisablePlugins", confValues, length+1);
+        saveConfig(config);
+        showInformationNote("Support for Bluetooth keyboards disabled");
     }
 
 }
 
-int BtKeyboard::showInformationNote(QString info_type){
+void BtKeyboard::enable(GKeyFile *config)
+{
+    parseConf(config);
+    disabled = isDisabled(confValues);
+
+    if (disabled){
+        counter = 0;
+        gchar *confValuesAux[length-1];
+
+        for (int i = 0; confValues[i] != NULL; i++) {
+            if (!g_str_equal("input", confValues[i])) {
+                confValuesAux[counter] = confValues[i];
+                counter++;
+            }
+        }
+
+        g_key_file_set_string_list(config, "General","DisablePlugins", confValuesAux, counter);
+        saveConfig(config);
+        showInformationNote("Support for Bluetooth keyboard enabled");
+    }
+
+    else
+        showInformationNote("Support for Bluetooth keyboard enabled");
+}
+
+void BtKeyboard::showInformationNote(QString info_type){
     QString credits = "\n\nCredits:\n\nProgramming: Valerio Valerio <vdv100@gmail.com\n";
     credits += "Application icon: Andrew Zhilin <drew.zhilin@gmail.com>\n";
 
@@ -135,12 +156,7 @@ int BtKeyboard::showInformationNote(QString info_type){
 
     QDBusConnection::systemBus().call(msg);
 
-    return 1;
-}
-
-void BtKeyboard::enable(GKeyFile *config)
-{
-    parseConf(config);
+    exit(1);
 }
 
 BtKeyboard::~BtKeyboard()
