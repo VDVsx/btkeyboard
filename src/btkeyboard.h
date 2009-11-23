@@ -44,6 +44,7 @@ public:
 private:
     QList<char*> conf;
     QString mode;
+    QString error;
     gsize length;
     gchar** confValues;
     gchar* input;

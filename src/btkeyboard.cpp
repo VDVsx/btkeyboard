@@ -22,96 +22,13 @@
 
 #include <QtDBus>
 #include <QVariant>
+#include <QtDebug>
 
 #include "btkeyboard.h"
 
 BtKeyboard::BtKeyboard(QString mod)
 {
     mode = mod;
-    QTextStream out(stdout);
-
-    //const char *conf_file = "main.conf";
-    input = "input";
-
-
-/*
-    confValues = g_key_file_get_string_list(keyfile, "General","DisablePlugins", &length, NULL);
-
-    if (length != 0){
-
-        for (gsize i= 0; i < length; i++){
-            conf.append(confValues[i]);
-        }
-    }
-
-    else{
-
-        out << "error: cant find option" << endl;
-    }
-
-
-    //disable
-
-    if (mode == "--disable"){
-
-        if (conf.contains(input)){
-
-            out << "already disabled" << endl;
-        }
-
-        else{
-
-            counter = 0;
-            conf.append(input);
-            memset(confValues, 0, length);
-
-            QListIterator<char*> confIterator(conf);
-
-            while (confIterator.hasNext()){
-
-                    confValues[counter] = confIterator.next();
-                    counter++;
-            }
-
-            //stop/start bluetoothd
-            g_key_file_set_string_list(keyfile, "General","DisablePlugins", confValues, counter);
-            out << "updated" << endl;
-
-        }
-
-
-    }
-
-     //enable
-
-    else{
-
-        out << "no not" << endl;
-
-    }
-
-
-    saved_data = g_key_file_to_data (keyfile, &length, NULL);
-
-    if (!saved_data){
-        out << "error" << endl;
-
-    }
-
-    //Write data to file
-    b_ret = g_file_set_contents (conf_file, saved_data, length, NULL);
-    g_free (saved_data);
-
-    if (!b_ret){
-
-       out << "error" << endl;
-
-    }
-
-    //free file
-    g_key_file_free(keyfile);*/
-
-
 }
 
 GKeyFile* BtKeyboard::load_config(const char *file)
@@ -120,14 +37,12 @@ GKeyFile* BtKeyboard::load_config(const char *file)
      GKeyFileFlags flags;
      GError *error = NULL;
 
-     QTextStream out(stdout); //remove
-
      keyfile = g_key_file_new();
      g_key_file_set_list_separator (keyfile,',');
      flags = G_KEY_FILE_KEEP_COMMENTS;
 
      if (!g_key_file_load_from_file(keyfile, file, flags, &error)){
-         out << "error: cant find conf file" << endl;
+         showInformationNote("Error: Cannot find the configurations file");
          return NULL;
      }
 
@@ -137,17 +52,12 @@ GKeyFile* BtKeyboard::load_config(const char *file)
 void BtKeyboard::parseConf(GKeyFile *config)
 {
     confValues = g_key_file_get_string_list(config, "General","DisablePlugins", &length, NULL);
-
-    //return confValues;
-
-     // por isto no outro lado -->   out << "error: cant find option" << endl;
 }
 
 bool BtKeyboard::isDisabled(char **list)
 {
     //returns true if the support is disable, ie the
     //plugin is on the list.
-
     for (int i = 0; list[i] != NULL; i++) {
         if (g_str_equal("input", list[i]))
             return true;
@@ -165,53 +75,49 @@ void BtKeyboard::saveConfig(GKeyFile *config)
 
     saved_data = g_key_file_to_data (config, &length, NULL);
 
-    if (!saved_data){
-        showInformationNote("error");
-    }
+    if (!saved_data)
+        showInformationNote("Error: Cannot save the configurations");
 
     //Write data to file
     b_ret = g_file_set_contents ("main.conf", saved_data, length, NULL);
     g_free (saved_data);
 
-    if (!b_ret){
-       showInformationNote("error");
-    }
+    if (!b_ret)
+       showInformationNote("Error: Cannot save the configurations");
 
     //free file
     g_key_file_free(config);
 
-    showInformationNote("file saved");
 }
-
 
 void BtKeyboard::disable(GKeyFile *config)
 {
-
     parseConf(config);
 
     if (confValues == NULL){
-        showInformationNote("error: cant find option");
+        error =  "Error: The configurations file is in bad state";
+        error += "\nSupport for Bluetooth keyboards disabled";
+        showInformationNote(error);
     }
 
     else{
         disabled = isDisabled(confValues);
-        if (disabled){
-           showInformationNote("KB Bluetooth Support disabled");
-        }
+        if (disabled)
+            showInformationNote("Support for Bluetooth keyboards disabled");
 
         else{
             confValues[length] = input;
             g_key_file_set_string_list(config, "General","DisablePlugins", confValues, length+1);
             saveConfig(config);
+            showInformationNote("Support for Bluetooth keyboards disabled");
         }
 
     }
 
-
 }
 
 int BtKeyboard::showInformationNote(QString info_type){
-    QString credits = "\nCredits:\n\nProgramming: Valerio Valerio <vdv100@gmail.com\n";
+    QString credits = "\n\nCredits:\n\nProgramming: Valerio Valerio <vdv100@gmail.com\n";
     credits += "Application icon: Andrew Zhilin <drew.zhilin@gmail.com>\n";
 
     QDBusMessage msg = QDBusMessage::createMethodCall("org.freedesktop.Notifications",
