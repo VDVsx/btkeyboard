@@ -42,7 +42,7 @@ GKeyFile* BtKeyboard::load_config(const char *file)
      g_key_file_set_list_separator (keyfile,',');
      flags = G_KEY_FILE_KEEP_COMMENTS;
 
-     if (!g_key_file_load_from_file(keyfile, file, flags, &error)){
+     if (!g_key_file_load_from_file(keyfile, file, flags, &error)) {
          showInformationNote("Error: Cannot find configuration file");
          return NULL;
      }
@@ -54,7 +54,7 @@ void BtKeyboard::parseConf(GKeyFile *config)
 {
     confValues = g_key_file_get_string_list(config, "General","DisablePlugins", &length, NULL);
 
-    if (confValues == NULL){
+    if (confValues == NULL) {
         error =  "Error: Can't parse configuration file";
         error += "\nSupport for Bluetooth keyboard disabled";
         showInformationNote(error);
@@ -111,7 +111,7 @@ void BtKeyboard::disable(GKeyFile *config)
         int tmp = system("stop bluetoothd");
 
         //should never happen
-        if (tmp < 0){
+        if (tmp < 0) {
             error = "Error: Cannot restart the Bluetooth system";
             error += "\nPlease restart your device to enable the support for Bluetooth keyboard";
             showInformationNote(error);
@@ -120,7 +120,7 @@ void BtKeyboard::disable(GKeyFile *config)
         tmp = system("start bluetoothd");
 
         //should never happen
-        if (tmp < 0){
+        if (tmp < 0) {
             error = "Error: Cannot start the Bluetooth system";
             error += "\nPlease restart your device";
             showInformationNote(error);
@@ -136,7 +136,7 @@ void BtKeyboard::enable(GKeyFile *config)
     parseConf(config);
     disabled = isDisabled(confValues);
 
-    if (disabled){
+    if (disabled) {
         counter = 0;
         gchar *confValuesAux[length-1];
 
@@ -162,7 +162,7 @@ void BtKeyboard::enable(GKeyFile *config)
         tmp = system("start bluetoothd");
 
         //should never happen
-        if (tmp < 0){
+        if (tmp < 0) {
             error = "Error: Cannot start the Bluetooth system";
             error += "\nPlease restart your device";
             showInformationNote(error);
@@ -212,4 +212,3 @@ void BtKeyboard::showInformationNote(QString info_type){
 BtKeyboard::~BtKeyboard()
 {
 }
-

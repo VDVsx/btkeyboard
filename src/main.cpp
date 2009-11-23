@@ -29,7 +29,7 @@ int main(int argc, char *argv[])
     QTextStream out(stdout);
     GKeyFile *config;
 
-    if (arg == "--disable" || arg == "--enable" || arg == "--state"){
+    if (arg == "--disable" || arg == "--enable" || arg == "--state") {
         BtKeyboard btkb(arg);
 
         config = btkb.load_config("/etc/bluetooth/main.conf");
