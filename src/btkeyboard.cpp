@@ -175,6 +175,18 @@ void BtKeyboard::enable(GKeyFile *config)
         showInformationNote("Support for Bluetooth keyboard enabled");
 }
 
+void BtKeyboard::state(GKeyFile *config)
+{
+    parseConf(config);
+    disabled = isDisabled(confValues);
+
+    if(disabled)
+        showInformationNote("Support for Bluetooth keyboard disabled");
+    else
+        showInformationNote("Support for Bluetooth keyboard enabled");
+
+}
+
 void BtKeyboard::showInformationNote(QString info_type){
     QString credits = "\n\nCredits:\n\nProgramming: Valerio Valerio <vdv100@gmail.com\n";
     credits += "Application icon: Andrew Zhilin <drew.zhilin@gmail.com>\n";

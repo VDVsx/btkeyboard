@@ -29,15 +29,17 @@ int main(int argc, char *argv[])
     QTextStream out(stdout);
     GKeyFile *config;
 
-    if (arg == "--disable" || arg == "--enable"){
+    if (arg == "--disable" || arg == "--enable" || arg == "--state"){
         BtKeyboard btkb(arg);
 
         config = btkb.load_config("/etc/bluetooth/main.conf");
 
         if (arg == "--disable")
             btkb.disable(config);
-        else
+        else if (arg == "--enable")
             btkb.enable(config);
+        else
+            btkb.state(config);
     }
 
     else{
@@ -46,7 +48,8 @@ int main(int argc, char *argv[])
         out << "Help Option:" << endl;
         out << "  --help        Show help options" << endl << endl;
         out << "Application Options:" << endl;
-        out << "  --enable      Enables the support for Bluetooth keyboards" << endl;
-        out << "  --disable     Disables the support for Bluetooth keyboards"  << endl << endl;
+        out << "  --enable      Enables the support for Bluetooth keyboard" << endl;
+        out << "  --disable     Disables the support for Bluetooth keyboard"  << endl;
+        out << "  --state       Shows current state(Enabled|Disabled)" << endl << endl;
     }
  }
